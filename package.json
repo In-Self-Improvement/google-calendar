@@ -1,0 +1,19 @@
+{
+  "name": "google-calendar",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/In-Self-Improvement/google-calendar.git",
+  "author": "Bong <borobong230@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "googleapis": "^120.0.0"
+  },
+  "devDependencies": {},
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true
+    }
+  }
+}
