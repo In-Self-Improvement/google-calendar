@@ -1,6 +1,7 @@
 // TODO: Set to client ID and API key from the Developer Console
-const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
-const API_KEY = import.meta.env.VITE_API_KEY;
+const CLIENT_ID =
+  "406276320276-ke1hoc8f8av523bai2d560sbjn06oe95.apps.googleusercontent.com";
+const API_KEY = "AIzaSyCoXQmuw3u0joy8K8CypRGhcJLwGEy4cU4";
 console.log("CLIENT_ID", CLIENT_ID);
 
 // Discovery doc URL for APIs used by the quickstart
@@ -9,7 +10,9 @@ const DISCOVERY_DOC =
 
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
-const SCOPES = "https://www.googleapis.com/auth/calendar.readonly";
+
+const SCOPES =
+  "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/calendar.events";
 
 let tokenClient;
 let gapiInited = false;
@@ -23,12 +26,14 @@ document.getElementById("signout_button").style.visibility = "hidden";
  */
 function gapiLoaded() {
   gapi.load("client", initializeGapiClient);
+  console.log("loaded");
 }
 
 /**
  * Callback after the API client is loaded. Loads the
  * discovery doc to initialize the API.
  */
+
 async function initializeGapiClient() {
   await gapi.client.init({
     apiKey: API_KEY,
@@ -64,10 +69,13 @@ function maybeEnableButtons() {
  *  Sign in the user upon button click.
  */
 function handleAuthClick() {
+  console.log("handle1");
+
   tokenClient.callback = async resp => {
     if (resp.error !== undefined) {
       throw resp;
     }
+    console.log("handle2");
     document.getElementById("signout_button").style.visibility = "visible";
     document.getElementById("authorize_button").innerText = "Refresh";
     await listUpcomingEvents();
@@ -78,9 +86,11 @@ function handleAuthClick() {
     // when establishing a new session.
     tokenClient.requestAccessToken({ prompt: "consent" });
   } else {
+    console.log("handle4");
     // Skip display of account chooser and consent dialog for an existing session.
     tokenClient.requestAccessToken({ prompt: "" });
   }
+  console.log("handle5");
 }
 
 /**
@@ -134,9 +144,45 @@ async function listUpcomingEvents() {
   document.getElementById("content").innerText = output;
 }
 
+function insertEvent() {
+  var event = {
+    summary: "Test for google Calendar",
+    // location: "800 Howard St., San Francisco, CA 94103",
+    // description: "A chance to hear more about Google's developer products.",
+    start: {
+      dateTime: "2023-07-28T09:00:00-07:00",
+      timeZone: "America/Los_Angeles",
+    },
+    end: {
+      dateTime: "2023-07-28T17:00:00-07:00",
+      timeZone: "America/Los_Angeles",
+    },
+    // recurrence: ["RRULE:FREQ=DAILY;COUNT=2"],
+    // attendees: [{ email: "lpage@example.com" }, { email: "sbrin@example.com" }],
+    reminders: {
+      useDefault: false,
+      overrides: [
+        { method: "email", minutes: 24 * 60 },
+        { method: "popup", minutes: 10 },
+      ],
+    },
+  };
+
+  var request = gapi.client.calendar.events.insert({
+    calendarId: "primary",
+    resource: event,
+  });
+
+  request.execute(function (event) {
+    appendPre("Event created: " + event.htmlLink);
+  });
+}
+
 document
   .getElementById("authorize_button")
   .addEventListener("click", handleAuthClick);
 document
   .getElementById("signout_button")
   .addEventListener("click", handleSignoutClick);
+
+document.getElementById("insert_button").addEventListener("click", insertEvent);
