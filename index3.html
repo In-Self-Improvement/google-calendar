@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Calendar Events</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .event {
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .event .time {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Upcoming Events</h1>
+    <div id="events"></div>
+
+    <script src="calendar.js"></script>
+    <script>
+      // Call the listEvents function from calendar.js
+      listEvents(events => {
+        // Get the events div
+        const eventsDiv = document.getElementById("events");
+
+        // Loop through the events and add them to the div
+        events.forEach(event => {
+          const eventDiv = document.createElement("div");
+          eventDiv.className = "event";
+
+          const timeDiv = document.createElement("div");
+          timeDiv.className = "time";
+          timeDiv.textContent = event.start;
+
+          const summaryDiv = document.createElement("div");
+          summaryDiv.className = "summary";
+          summaryDiv.textContent = event.summary;
+
+          eventDiv.appendChild(timeDiv);
+          eventDiv.appendChild(summaryDiv);
+
+          eventsDiv.appendChild(eventDiv);
+        });
+      });
+    </script>
+  </body>
+</html>
