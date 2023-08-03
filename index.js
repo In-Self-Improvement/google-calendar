@@ -78,7 +78,7 @@ function handleAuthClick() {
     console.log("handle2");
     document.getElementById("signout_button").style.visibility = "visible";
     document.getElementById("authorize_button").innerText = "Refresh";
-    await listUpcomingEvents();
+    await listUpcomingEvents(false);
   };
 
   if (gapi.client.getToken() === null) {
@@ -107,21 +107,21 @@ function handleSignoutClick() {
   }
 }
 
-/**
- * Print the summary and start datetime/date of the next ten events in
- * the authorized user's calendar. If no events are found an
- * appropriate message is printed.
- */
-async function listUpcomingEvents() {
+async function listUpcomingEvents(showHiddenInvitations = false) {
   let response;
   try {
+    const now = new Date();
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(now.getDate() - 7);
     const request = {
       calendarId: "primary",
-      timeMin: new Date().toISOString(),
+      timeMin: oneWeekAgo.toISOString(),
+      timeMax: now.toISOString(),
       showDeleted: false,
       singleEvents: true,
       maxResults: 10,
       orderBy: "startTime",
+      // showHiddenInvitations: showHiddenInvitations,
     };
     response = await gapi.client.calendar.events.list(request);
   } catch (err) {
@@ -135,10 +135,29 @@ async function listUpcomingEvents() {
     document.getElementById("content").innerText = "No events found.";
     return;
   }
+
+  const groupedEvents = events.reduce((grouped, event) => {
+    const eventName = event.summary || "No title";
+    if (!grouped[eventName]) {
+      grouped[eventName] = [];
+    }
+    const start = moment(event.start.dateTime || event.start.date);
+    const end = moment(event.end.dateTime || event.end.date);
+    const duration = moment.duration(end.diff(start)).asHours();
+    grouped[eventName].push(
+      `${eventName} (Start: ${start.format(
+        "YYYY-MM-DD HH:mm:ss"
+      )}, End: ${end.format(
+        "YYYY-MM-DD HH:mm:ss"
+      )}, Duration: ${duration.toFixed(2)} hours)`
+    );
+    return grouped;
+  }, {});
+
   // Flatten to string to display
-  const output = events.reduce(
-    (str, event) =>
-      `${str}${event.summary} (${event.start.dateTime || event.start.date})\n`,
+  const output = Object.keys(groupedEvents).reduce(
+    (str, eventName) =>
+      `${str}${eventName}:\n${groupedEvents[eventName].join("\n")}\n`,
     "Events:\n"
   );
   document.getElementById("content").innerText = output;
@@ -147,8 +166,6 @@ async function listUpcomingEvents() {
 function insertEvent() {
   var event = {
     summary: "Test for google Calendar",
-    // location: "800 Howard St., San Francisco, CA 94103",
-    // description: "A chance to hear more about Google's developer products.",
     start: {
       dateTime: "2023-07-28T09:00:00-07:00",
       timeZone: "America/Los_Angeles",
@@ -157,8 +174,6 @@ function insertEvent() {
       dateTime: "2023-07-28T17:00:00-07:00",
       timeZone: "America/Los_Angeles",
     },
-    // recurrence: ["RRULE:FREQ=DAILY;COUNT=2"],
-    // attendees: [{ email: "lpage@example.com" }, { email: "sbrin@example.com" }],
     reminders: {
       useDefault: false,
       overrides: [
